@@ -357,7 +357,7 @@ void ID()
 /* instruction fetch (IF) pipeline stage:                                                              */ 
 /************************************************************/
 void IF()
-{
+{	//something with memread
 	/*IMPLEMENT THIS*/
 }
 
