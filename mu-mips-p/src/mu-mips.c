@@ -355,6 +355,29 @@ void ID()
 {
 	/*IMPLEMENT THIS*/
 	//Second stage
+	//Initialize ID pipeline registers
+	ID_EX.IR = IF_ID.IR;
+	ID_ED.PC = IF_ID.PC;
+	ID_EX.A = 0;
+	ID_EX.B = 0;
+	ID_EX.imm = 0;
+	
+	uint32_t opcode, rs, rt, immediate;
+	
+	opcode = (IF_ID.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
+	rs = (IF_ID.IR & 0x03E00000) >> 21;	//Shift left to get rs bits 21-25
+	rt = (IF_ID.IR & 0x001F0000) >> 16;	//Shift left to get rt bits 16-20
+	immediate = IF_ID.IR & 0x0000FFFF;	//Get first 16 bits of instruction
+	
+	ID_EX.A = CURRENT_STATE.REGS[rs];	//Set A to value in current state of rs
+	ID_EX.B = CURRENT_STATE.REGS[rt];	//Set B to value in current state of rt
+	
+	if ((immediate >> 15) == 1){	//If negative
+		ID_EX.imm = immediate | 0xFFFF0000;	//Sign extend and store in imm		
+	}
+	else{
+		ID_EX.imm = immediate & 0x0000FFFF;	//Else it's positive, store in imm	
+	}
 	
 }
 
