@@ -328,12 +328,6 @@ void WB()
 {
 	/*IMPLEMENT THIS*/
 	//Fifth stage
-	MEM_WB.IR = EX_MEM.IR;
-	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-	MEM_WB.LMD = 0;
-	
-	
-	INSTRUCTION_COUNT++;
 }
 
 /************************************************************/
@@ -343,6 +337,9 @@ void MEM()
 {
 	/*IMPLEMENT THIS*/
 	//Fourth stage
+	//Load/Store only?
+	MEM_WB.IR = EX_MEM.IR;
+	MEM_WB.LMD = 0;
 }
 
 /************************************************************/
@@ -352,6 +349,13 @@ void EX()
 {
 	/*IMPLEMENT THIS*/
 	//Third stage
+	//Initialize EX pipeline registers
+	EX_MEM.IR = ID_EX.IR;
+	EX_MEM.PC = ID_EX.PC;
+	EX_MEM.A = ID_EX.A;
+	EX_MEM.B = ID_EX.B;
+	EX_MEM.imm = ID_EX.imm;
+	EX_MEM.ALUOutput = 0;
 }
 
 /************************************************************/
