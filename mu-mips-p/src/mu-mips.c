@@ -328,6 +328,12 @@ void WB()
 {
 	/*IMPLEMENT THIS*/
 	//Fifth stage
+	MEM_WB.IR = EX_MEM.IR;
+	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
+	MEM_WB.LMD = 0;
+	
+	
+	INSTRUCTION_COUNT++;
 }
 
 /************************************************************/
@@ -357,7 +363,7 @@ void ID()
 	//Second stage
 	//Initialize ID pipeline registers
 	ID_EX.IR = IF_ID.IR;
-	ID_ED.PC = IF_ID.PC;
+	ID_EX.PC = IF_ID.PC;
 	ID_EX.A = 0;
 	ID_EX.B = 0;
 	ID_EX.imm = 0;
