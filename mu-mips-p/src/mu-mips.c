@@ -328,6 +328,13 @@ void WB()
 {
 	/*IMPLEMENT THIS*/
 	//Fifth stage
+	
+	MEM_WB.IR = EX_MEM.IR;
+	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
+	MEM_WB.LMD = 0;
+
+
+	INSTRUCTION_COUNT++;
 }
 
 /************************************************************/
