@@ -327,6 +327,7 @@ void handle_pipeline()
 void WB()
 {
 	/*IMPLEMENT THIS*/
+	//Fifth stage
 }
 
 /************************************************************/
@@ -335,6 +336,7 @@ void WB()
 void MEM()
 {
 	/*IMPLEMENT THIS*/
+	//Fourth stage
 }
 
 /************************************************************/
@@ -343,6 +345,7 @@ void MEM()
 void EX()
 {
 	/*IMPLEMENT THIS*/
+	//Third stage
 }
 
 /************************************************************/
@@ -351,6 +354,8 @@ void EX()
 void ID()
 {
 	/*IMPLEMENT THIS*/
+	//Second stage
+	
 }
 
 /************************************************************/
@@ -359,6 +364,11 @@ void ID()
 void IF()
 {	//something with memread
 	/*IMPLEMENT THIS*/
+	//First stage
+	
+	IF_ID.IR = mem_read_32(CURRENT_STATE.PC);	//Get current value in memory
+	IF_ID.PC = CURRENT_STATE.PC + 4;	//Increment counter
+	NEXT_STATE.PC = IF_ID.PC;	//Store incremented counter into pc's next state
 }
 
 
