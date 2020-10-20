@@ -359,10 +359,218 @@ void EX()
 	//Initialize EX pipeline registers
 	EX_MEM.IR = ID_EX.IR;
 	EX_MEM.PC = ID_EX.PC;
-	EX_MEM.A = ID_EX.A;
-	EX_MEM.B = ID_EX.B;
-	EX_MEM.imm = ID_EX.imm;
 	EX_MEM.ALUOutput = 0;
+	EX_MEM.HI = 0;
+	EX_MEM.LO = 0;
+	
+	uint32_t opcode, funct, sa;
+	
+	opcode = (EX_MEM.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
+	funct = EX_MEM.IR & 0x0000003F;	//Get first 6 bits for function code
+	sa = (EX_MEM.IR & 0x000007C0) >> 6;	//Get shift amount
+	
+	if (opcode == 0x00){	//R-type instruction
+		switch(funct){
+			case 0x00:	//SLL
+				EX_MEM.ALUOutput = ID_EX.B << sa;	//SLL, rd(aluoutput), rt(EX_MEM.B), sa
+				break;
+				
+			case 0x02:	//SRL
+				EX_MEM.ALUOutput = ID_EX.B >> sa;	//SRL, rd(aluoutput), rt(EX_MEM.B), sa
+				break;
+				
+			case 0x03:	//SRA
+				EX_MEM.ALUOutput = ID_EX.B >> sa;	//Same as SRL
+				break;
+				
+			case 0x08:	//JR
+				break;
+				
+			case 0x09:	//JALR
+				break;
+				
+			case 0x0C:	//SYSCALL
+				break;
+				
+			case 0x10:	//MFHI
+				EX_MEM.ALUOutput = CURRENT_STATE.HI;	//Contents of HI are loaded into rd(aluoutput)
+				break;
+				
+			case 0x11:	//MTHI
+				NEXT_STATE.HI = ID_EX.A;	//Contents of rs(A) are loaded into HI
+				break;
+				
+			case 0x12:	//MFLO
+				EX_MEM.ALUOutput = CURRENT_STATE.LO;	//Contents of LO are loaded into rd(aluoutput)
+				break;
+				
+			case 0x13:	//MTLO
+				NEXT_STATE.LO = ID_EX.A;	//Contents of rs(A) are loaded into LO
+				break;
+				
+			case 0x18:	//MULT
+				
+			case 0x19:	//MULTU
+				
+			case 0x1A:	//DIV
+				if (ID_EX.B == 0){
+					printf("Cannot divide by 0\n");
+				}
+				else{
+					NEXT_STATE.LO = ID_EX.A / ID_EX.B;	//same as lab 1
+					NEXT_STATE.HI = ID_EX.A % ID_EX.B;
+				}
+				break;
+				
+			case 0x1B:	//DIVU
+				if (ID_EX.B == 0){
+					printf("Cannot divide by 0\n");
+				}
+				else{
+					NEXT_STATE.LO = ID_EX.A / ID_EX.B;	//same as lab 1
+					NEXT_STATE.HI = ID_EX.A % ID_EX.B;
+				}
+				break;
+				
+			case 0x20:	//ADD
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;	//ADD rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x21:	//ADDU
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;	//ADDU rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x22:	//SUB
+				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;	//SUB rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x23:	//SUBU
+				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;	//SUBU rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x24:	//AND
+				EX_MEM.ALUOutput = ID_EX.A & ID_EX.B;	//AND rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x25:	//OR
+				EX_MEM.ALUOutput = ID_EX.A | ID_EX.B;	//OR rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x26:	//XOR
+				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.B;	//XOR rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x27:	//NOR
+				EX_MEM.ALUOutput = ~(ID_EX.A | ID_EX.B);	//NOR rd(ALUOutput), rs(A), rt(B)
+				break;
+				
+			case 0x2A:	//SLT
+				if(ID_EX.A < ID_EX.B){
+					EX_MEM.ALUOutput = 1;	//If rs(A) is less than rt(B), result = 1
+				}
+				else{
+					EX_MEM.ALUOutput = 0;	//Else, result = 0
+				}
+				break;
+				
+			default:
+				printf("R-type instruction not handled\n");
+				break;
+		}
+	}
+	else{
+		switch(opcode){
+			case 0x01:	//BLTZ OR BGEZ
+				break;
+				
+			case 0x02:	//J
+				break;
+				
+			case 0x03:	//JAL
+				break;
+				
+			case 0x04:	//BEQ
+				break;
+				
+			case 0x05:	//BNE
+				break;
+				
+			case 0x06:	//BLEZ
+				break;
+				
+			case 0x07:	//BGTZ
+				break;
+				
+			case 0x08:	//ADDI
+				
+				
+			case 0x09:	//ADDIU
+				
+			case 0x0A:	//SLTI
+				
+				
+			case 0x0C:	//ANDI
+				EX_MEM.ALUOutput = ID_EX.A & ID_EX.imm;	//ANDI rt(aluotput), rs(A), immediate
+				break;
+				
+			case 0x0D:	//ORI
+				EX_MEM.ALUOutput = ID_EX.A | ID_EX.imm;	//ORI rt(aluotput), rs(A), immediate
+				break;
+				
+			case 0x0E:	//XORI
+				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.imm;	//XORI rt(aluotput), rs(A), immediate
+				break;
+				
+			case 0x0F:	//LUI
+				EX_MEM.ALUOutput = ID_EX.imm << 16;	//Shift immediate left 16 bits and place in ALUOutput
+				break;
+				
+			case 0x20:	//LB
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+				EX_MEM.B = ID_EX.B;
+				EX_MEM.imm = ID_EX.imm;
+				break;
+				
+			case 0x21:	//LH
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+				EX_MEM.B = ID_EX.B;
+				EX_MEM.imm = ID_EX.imm;
+				break;
+					
+			case 0x23:	//LW
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+				EX_MEM.B = ID_EX.B;
+				EX_MEM.imm = ID_EX.imm;
+				break;
+				
+			case 0x28:	//SB
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+				EX_MEM.B = ID_EX.B;
+				EX_MEM.imm = ID_EX.imm;
+				break;
+				
+			case 0x29:	//SH
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+				EX_MEM.B = ID_EX.B;
+				EX_MEM.imm = ID_EX.imm;
+				break;
+				
+			case 0x2B:	//SW
+				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+				EX_MEM.B = ID_EX.B;
+				EX_MEM.imm = ID_EX.imm;
+				break;
+				
+			default:
+				break;
+		}
+	}
 }
 
 /************************************************************/
@@ -379,9 +587,8 @@ void ID()
 	ID_EX.B = 0;
 	ID_EX.imm = 0;
 	
-	uint32_t opcode, rs, rt, immediate;
+	uint32_t rs, rt, immediate;
 	
-	opcode = (IF_ID.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 	rs = (IF_ID.IR & 0x03E00000) >> 21;	//Shift left to get rs bits 21-25
 	rt = (IF_ID.IR & 0x001F0000) >> 16;	//Shift left to get rt bits 16-20
 	immediate = IF_ID.IR & 0x0000FFFF;	//Get first 16 bits of instruction
