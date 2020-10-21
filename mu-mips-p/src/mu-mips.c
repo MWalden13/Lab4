@@ -573,7 +573,52 @@ void MEM()
 	//Fourth stage
 	//Load/Store only?
 	MEM_WB.IR = EX_MEM.IR;
+	MEM_WB.PC = EX_MEM.PC:
+	MEM_WB.A = EX_MEM.A;
+	MEM_WB.B = EX_MEM.B;
+	MEM_WB.imm = EX_MEM.imm;
+	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	MEM_WB.LMD = 0;
+	
+	uint32_t opcode, funct;
+	
+	opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift to get opcode bits 26-31
+	
+	if (opcode == 0x00){
+		break;	//Don't need r type	
+	}
+	
+	else{
+		switch(opcode){
+			case 0x20:	//LB
+				MEM_WB.LMD = 0x000000FF & mem_read_32(MEM_WB.ALUOutput);	//Get first 8 bits from memory and place in lmd
+				break;
+				
+			case 0x21:	//LH
+				MEM_WB.LMD = 0x0000FFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 16 bits from memory and place in lmd
+				break;
+				
+			case 0x23:	//LW
+				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 32 bits from memory and place in lmd
+				break;
+				
+			case 0x28:	//SB
+				mem_write_32(MEM_WB.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
+				break;
+				
+			case 0x29:	//SH
+				mem_write_32(MEM_WB.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
+				break;
+				
+			case 0x2B:	//SW
+				mem_write_32(MEM_WB.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
+				break;
+				
+			default:
+				break;
+		}
+	}
+	
 }
 
 /************************************************************/
@@ -586,11 +631,13 @@ void EX()
 	//Initialize EX pipeline registers
 	EX_MEM.IR = ID_EX.IR;
 	EX_MEM.PC = ID_EX.PC;
+	EX_MEM.A = ID_EX.A;
+	EX_MEM.B = ID_EX.B;
+	EX_MEM.imm = ID_EX.imm;
 	EX_MEM.ALUOutput = 0;
-	EX_MEM.HI = 0;
-	EX_MEM.LO = 0;
 	
 	uint32_t opcode, funct, sa;
+	uint64_t multiply;
 	
 	opcode = (EX_MEM.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 	funct = EX_MEM.IR & 0x0000003F;	//Get first 6 bits for function code
@@ -599,15 +646,15 @@ void EX()
 	if (opcode == 0x00){	//R-type instruction
 		switch(funct){
 			case 0x00:	//SLL
-				EX_MEM.ALUOutput = ID_EX.B << sa;	//SLL, rd(aluoutput), rt(EX_MEM.B), sa
+				EX_MEM.ALUOutput = EX_MEM.B << sa;	//SLL, rd(aluoutput), rt(EX_MEM.B), sa
 				break;
 				
 			case 0x02:	//SRL
-				EX_MEM.ALUOutput = ID_EX.B >> sa;	//SRL, rd(aluoutput), rt(EX_MEM.B), sa
+				EX_MEM.ALUOutput = EX_MEM.B >> sa;	//SRL, rd(aluoutput), rt(EX_MEM.B), sa
 				break;
 				
 			case 0x03:	//SRA
-				EX_MEM.ALUOutput = ID_EX.B >> sa;	//Same as SRL
+				EX_MEM.ALUOutput = EX_MEM.B >> sa;	//Same as SRL
 				break;
 				
 			case 0x08:	//JR
@@ -624,7 +671,7 @@ void EX()
 				break;
 				
 			case 0x11:	//MTHI
-				NEXT_STATE.HI = ID_EX.A;	//Contents of rs(A) are loaded into HI
+				NEXT_STATE.HI = EX_MEM.A;	//Contents of rs(A) are loaded into HI
 				break;
 				
 			case 0x12:	//MFLO
@@ -632,67 +679,75 @@ void EX()
 				break;
 				
 			case 0x13:	//MTLO
-				NEXT_STATE.LO = ID_EX.A;	//Contents of rs(A) are loaded into LO
+				NEXT_STATE.LO = EX_MEM.A;	//Contents of rs(A) are loaded into LO
 				break;
 				
 			case 0x18:	//MULT
+				multiply = EX_MEM.A * EX_MEM.B;	//multiply rs and rt, store low order into LO and high order into HI
+				NEXT_STATE.LO = 0x00000000FFFFFFFF & multiply;
+				NEXT_STATE.HI = (0xFFFFFFFF00000000 & multiply) >> 32;
+				break;
 				
 			case 0x19:	//MULTU
+				multiply = EX_MEM.A * EX_MEM.B;	//multiply rs and rt, store low order into LO and high order into HI
+				NEXT_STATE.LO = 0x00000000FFFFFFFF & multiply;
+				NEXT_STATE.HI = (0xFFFFFFFF00000000 & multiply) >> 32;
+				break;
 				
 			case 0x1A:	//DIV
-				if (ID_EX.B == 0){
+				if (EX_MEM.B == 0){
 					printf("Cannot divide by 0\n");
 				}
 				else{
-					NEXT_STATE.LO = ID_EX.A / ID_EX.B;	//same as lab 1
-					NEXT_STATE.HI = ID_EX.A % ID_EX.B;
+					NEXT_STATE.LO = EX_MEM.A / EX_MEM.B;	//same as lab 1
+					NEXT_STATE.HI = EX_MEM.A % EX_MEM.B;
 				}
 				break;
 				
 			case 0x1B:	//DIVU
-				if (ID_EX.B == 0){
+				if (EX_MEM.B == 0){
 					printf("Cannot divide by 0\n");
 				}
 				else{
-					NEXT_STATE.LO = ID_EX.A / ID_EX.B;	//same as lab 1
-					NEXT_STATE.HI = ID_EX.A % ID_EX.B;
+					NEXT_STATE.LO = EX_MEM.A / EX_MEM.B;	//same as lab 1
+					NEXT_STATE.HI = EX_MEM.A % EX_MEM.B;
 				}
 				break;
 				
 			case 0x20:	//ADD
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;	//ADD rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADD rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x21:	//ADDU
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.B;	//ADDU rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADDU rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x22:	//SUB
-				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;	//SUB rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A - EX_MEM.B;	//SUB rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x23:	//SUBU
-				EX_MEM.ALUOutput = ID_EX.A - ID_EX.B;	//SUBU rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A - EX_MEM.B;	//SUBU rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x24:	//AND
-				EX_MEM.ALUOutput = ID_EX.A & ID_EX.B;	//AND rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.B;	//AND rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x25:	//OR
-				EX_MEM.ALUOutput = ID_EX.A | ID_EX.B;	//OR rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.B;	//OR rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x26:	//XOR
-				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.B;	//XOR rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.B;	//XOR rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x27:	//NOR
-				EX_MEM.ALUOutput = ~(ID_EX.A | ID_EX.B);	//NOR rd(ALUOutput), rs(A), rt(B)
+				EX_MEM.ALUOutput = ~(EX_MEM.A | EX_MEM.B);	//NOR rd(ALUOutput), rs(A), rt(B)
 				break;
 				
 			case 0x2A:	//SLT
-				if(ID_EX.A < ID_EX.B){
+				if(EX_MEM.A < EX_MEM.B){
 					EX_MEM.ALUOutput = 1;	//If rs(A) is less than rt(B), result = 1
 				}
 				else{
@@ -729,27 +784,39 @@ void EX()
 				break;
 				
 			case 0x08:	//ADDI
-				
+				if (EX_MEM.imm >> 15){	//negative
+					EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm;	//sign extended
+				}
+				EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
+				break;
 				
 			case 0x09:	//ADDIU
+				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.imm;	//ADDIU rt(aluoutput), rs(A), immediate
+				break;
 				
 			case 0x0A:	//SLTI
-				
+				if (EX_MEM.A < EX_MEM.imm){
+					EX_MEM.ALUOutput = 1;	//If rs(A) < immediate, rt(aluoutput) = 1	
+				}
+				else{
+					EX_MEM.ALUOutput = 0;	//If rs(A) > immediate, rt(aluoutput) = 0	
+				}
+				break;
 				
 			case 0x0C:	//ANDI
-				EX_MEM.ALUOutput = ID_EX.A & ID_EX.imm;	//ANDI rt(aluotput), rs(A), immediate
+				EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.imm;	//ANDI rt(aluotput), rs(A), immediate
 				break;
 				
 			case 0x0D:	//ORI
-				EX_MEM.ALUOutput = ID_EX.A | ID_EX.imm;	//ORI rt(aluotput), rs(A), immediate
+				EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.imm;	//ORI rt(aluotput), rs(A), immediate
 				break;
 				
 			case 0x0E:	//XORI
-				EX_MEM.ALUOutput = ID_EX.A ^ ID_EX.imm;	//XORI rt(aluotput), rs(A), immediate
+				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.imm;	//XORI rt(aluotput), rs(A), immediate
 				break;
 				
 			case 0x0F:	//LUI
-				EX_MEM.ALUOutput = ID_EX.imm << 16;	//Shift immediate left 16 bits and place in ALUOutput
+				EX_MEM.ALUOutput = EX_MEM.imm << 16;	//Shift immediate left 16 bits and place in ALUOutput
 				break;
 				
 			case 0x20:	//LB
