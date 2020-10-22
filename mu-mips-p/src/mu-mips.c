@@ -335,31 +335,33 @@ void WB()
 	
 	int opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 	int funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
+	int rt = (instruction & 0x001F0000) >> 16;
+	int rd = (instruction & 0x0000F800) >> 11;
 
 	if (opcode == 0x00) {	 //R-type instruction
 		switch(funct) {
 			case 0x00:	//SLL
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x02:	//SRL
-				REGS[rd] = MEM_WB.ALUOutput; 
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput; 
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x03:	//SRA
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x08:	//JR
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x09:	//JALR
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -367,87 +369,87 @@ void WB()
 				break;
 				
 			case 0x10:	//MFHI
-				REGS[rd] = MEM_WB.ALUOutput;  
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;  
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x11:	//MTHI
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x12:	//MFLO
-				REGS[rd] = MEM_WB.ALUOutput;	
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;	
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x13:	//MTLO
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x18:	//MULT
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x19:	//MULTU
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x1A:	//DIV
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x1B:	//DIVU
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x20:	//ADD
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x21:	//ADDU
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x22:	//SUB
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x23:	//SUBU
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x24:	//AND
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x25:	//OR
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x26:	//XOR
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x27:	//NOR
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x2A:	//SLT
-				REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -459,102 +461,102 @@ void WB()
 	else{
 		switch(opcode){
 			case 0x01:	//BLTZ OR BGEZ
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x02:	//J
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x03:	//JAL
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x04:	//BEQ
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x05:	//BNE
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x06:	//BLEZ
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x07:	//BGTZ
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x08:	//ADDI
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x09:	//ADDIU
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x0A:	//SLTI
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x0C:	//ANDI
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x0D:	//ORI
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x0E:	//XORI
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x0F:	//LUI
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x20:	//LB
-				REGS[rt] = MEM_WB.LMD;
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x21:	//LH
-				REGS[rt] = MEM_WB.LMD;
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				INSTRUCTION_COUNT++;
 				break;
 					
 			case 0x23:	//LW
-				REGS[rt] = MEM_WB.LMD;
+				NEXT_STATE.REGS[rt] = MEM_WB.LMD;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x28:	//SB
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x29:	//SH
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x2B:	//SW
-				REGS[rt] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
