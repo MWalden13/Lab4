@@ -454,7 +454,7 @@ void WB()
 				break;
 				
 			default:
-				printf("R-type instruction not handled\n");
+				printf("R-type instruction not handled in wb\n");
 				break;
 		}
 	}
@@ -561,6 +561,7 @@ void WB()
 				break;
 				
 			default:
+                printf("\ninstruction not handled in wb");
 				break;
 		}
 	}
@@ -666,6 +667,9 @@ void EX()
 				break;
 				
 			case 0x0C:	//SYSCALL
+                if(CURRENT_STATE.REGS[2] == 0xa){
+                    RUN_FLAG = FALSE;
+                    }
 				break;
 				
 			case 0x10:	//MFHI
@@ -758,7 +762,7 @@ void EX()
 				break;
 				
 			default:
-				printf("R-type instruction not handled\n");
+				printf("R-type instruction not handled in ex\n");
 				break;
 		}
 	}
@@ -864,6 +868,7 @@ void EX()
 				break;
 				
 			default:
+                printf("\ninstruction not handled in ex");
 				break;
 		}
 	}
@@ -1120,24 +1125,24 @@ void print_instruction(uint32_t addr){
 void show_pipeline(){
 	/*IMPLEMENT THIS*/
 	printf("\nCurrent PC: %X", CURRENT_STATE.PC);
-	printf("\nIF/ID.IR:  %X", IF_ID.IR);
+	printf("\nIF/ID.IR:  %X  instruction:   ", IF_ID.IR);
 	print_instruction(CURRENT_STATE.PC);
-	printf("\nIF/ID.PC: %X", IF_ID.PC );
+	printf("\nIF/ID.PC: %X\n\n", IF_ID.PC );
 	
-	printf("\nID/EX.IR: %X", ID_EX.IR);
+	printf("\nID/EX.IR: %X    instruction:   ", ID_EX.IR);
 	print_instruction(CURRENT_STATE.PC);
 	printf("\nID/EX.IR:  %X", ID_EX.IR);
 	printf("\nID/EX.A:  %X",ID_EX.A);
-	printf("\nID/EX.B:  %X",ID_EX.B);
+	printf("\nID/EX.B:  %X\n\n",ID_EX.B);
 	
 	printf("\nEX/MEM.IR:  %X", EX_MEM.IR);
 	printf("\nEX/MEM.A:  %X", EX_MEM.A);
 	printf("\nEX/MEM.B:  %X",EX_MEM.B);
-	printf("\nEX/MEM.ALUOutput:  %X",EX_MEM.ALUOutput);
+	printf("\nEX/MEM.ALUOutput:  %X\n\n",EX_MEM.ALUOutput);
 	
 	printf("\nMEM/WB.IR:  %X",MEM_WB.IR);
 	printf("\nMEM/WB.ALUOutput:  %X",MEM_WB.ALUOutput);
-	printf("\nMEM/WB.LMD:  %X",MEM_WB.LMD );
+	printf("\nMEM/WB.LMD:  %X\n\n",MEM_WB.LMD );
 }
 
 /***************************************************************/
