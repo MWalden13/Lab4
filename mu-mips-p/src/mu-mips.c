@@ -333,9 +333,9 @@ void WB()
 	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	MEM_WB.LMD = 0;
 	
-	opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
-	funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
-	
+	int opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
+	int funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
+
 	if (opcode == 0x00) {	 //R-type instruction
 		switch(funct) {
 			case 0x00:	//SLL
@@ -573,19 +573,19 @@ void MEM()
 	//Fourth stage
 	//Load/Store only?
 	MEM_WB.IR = EX_MEM.IR;
-	MEM_WB.PC = EX_MEM.PC:
+	MEM_WB.PC = EX_MEM.PC;
 	MEM_WB.A = EX_MEM.A;
 	MEM_WB.B = EX_MEM.B;
 	MEM_WB.imm = EX_MEM.imm;
 	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	MEM_WB.LMD = 0;
 	
-	uint32_t opcode, funct;
+	uint32_t opcode;
 	
 	opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift to get opcode bits 26-31
 	
 	if (opcode == 0x00){
-		break;	//Don't need r type	
+		return;	//Don't need r type	
 	}
 	
 	else{
