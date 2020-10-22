@@ -1119,6 +1119,25 @@ void print_instruction(uint32_t addr){
 /************************************************************/
 void show_pipeline(){
 	/*IMPLEMENT THIS*/
+	printf("\nCurrent PC: %X", CURRENT_STATE.PC);
+	printf("\nIF/ID.IR:  %X", IF_ID.IR);
+	print_instruction(CURRENT_STATE.PC);
+	printf("\nIF/ID.PC: %X", IF_ID.PC );
+	
+	printf("\nID/EX.IR: %X", ID_EX.IR);
+	print_instruction(CURRENT_STATE.PC);
+	printf("\nID/EX.IR:  %X", ID_EX.IR);
+	printf("\nID/EX.A:  %X",ID_EX.A);
+	printf("\nID/EX.B:  %X",ID_EX.B);
+	
+	printf("\nEX/MEM.IR:  %X", EX_MEM.IR);
+	printf("\nEX/MEM.A:  %X", EX_MEM.A);
+	printf("\nEX/MEM.B:  %X",EX_MEM.B);
+	printf("\nEX/MEM.ALUOutput:  %X",EX_MEM.ALUOutput);
+	
+	printf("\nMEM/WB.IR:  %X",MEM_WB.IR);
+	printf("\nMEM/WB.ALUOutput:  %X",MEM_WB.ALUOutput);
+	printf("\nMEM/WB.LMD:  %X",MEM_WB.LMD );
 }
 
 /***************************************************************/
