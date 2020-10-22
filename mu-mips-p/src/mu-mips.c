@@ -335,8 +335,8 @@ void WB()
 	
 	int opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 	int funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
-	int rt = (instruction & 0x001F0000) >> 16;
-	int rd = (instruction & 0x0000F800) >> 11;
+	int rt = (MEM_WB.IR & 0x001F0000) >> 16;
+	int rd = (MEM_WB.IR & 0x0000F800) >> 11;
 
 	if (opcode == 0x00) {	 //R-type instruction
 		switch(funct) {
