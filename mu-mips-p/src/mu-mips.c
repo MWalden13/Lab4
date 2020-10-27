@@ -329,8 +329,6 @@ void WB()
 	/*IMPLEMENT THIS*/
 	//Fifth stage
 	
-	MEM_WB.IR = EX_MEM.IR;
-	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	
 	uint32_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 	uint32_t funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
@@ -546,17 +544,17 @@ void WB()
 				
 			case 0x28:	//SB
 //				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				INSTRUCTION_COUNT++;
+				//INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x29:	//SH
 //				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				INSTRUCTION_COUNT++;
+				//INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x2B:	//SW
 			//	NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
-				INSTRUCTION_COUNT++;
+			//	INSTRUCTION_COUNT++;
 				break;
 				
 			default:
@@ -602,7 +600,7 @@ void MEM()
 				
 			case 0x23:	//LW
 				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 32 bits from memory and place in lmd
-				printf("\nlw mem address = %X, aluoutput = %X", MEM_WB.ALUOutput, MEM_WB.LMD);
+				printf("lw mem address = %X\n", MEM_WB.ALUOutput);
                 break;
 				
 			case 0x28:	//SB
