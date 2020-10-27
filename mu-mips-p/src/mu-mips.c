@@ -331,12 +331,11 @@ void WB()
 	
 	MEM_WB.IR = EX_MEM.IR;
 	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
-	MEM_WB.LMD = 0;
 	
-	int opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
-	int funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
-	int rt = (MEM_WB.IR & 0x001F0000) >> 16;
-	int rd = (MEM_WB.IR & 0x0000F800) >> 11;
+	uint32_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
+	uint32_t funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
+	uint32_t rt = (MEM_WB.IR & 0x001F0000) >> 16;
+	uint32_t rd = (MEM_WB.IR & 0x0000F800) >> 11;
 
 	if (opcode == 0x00) {	 //R-type instruction
 		switch(funct) {
@@ -546,17 +545,17 @@ void WB()
 				break;
 				
 			case 0x28:	//SB
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+//				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x29:	//SH
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+//				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x2B:	//SW
-				NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
+			//	NEXT_STATE.REGS[rt] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -603,7 +602,8 @@ void MEM()
 				
 			case 0x23:	//LW
 				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 32 bits from memory and place in lmd
-				break;
+				printf("\nlw mem address = %X, aluoutput = %X", MEM_WB.ALUOutput, MEM_WB.LMD);
+                break;
 				
 			case 0x28:	//SB
 				mem_write_32(MEM_WB.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
@@ -670,6 +670,7 @@ void EX()
                 if(CURRENT_STATE.REGS[2] == 0xa){
                     RUN_FLAG = FALSE;
                     }
+                    print_instruction(CURRENT_STATE.PC-8);
 				break;
 				
 			case 0x10:	//MFHI
@@ -722,7 +723,8 @@ void EX()
 				
 			case 0x20:	//ADD
 				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADD rd(ALUOutput), rs(A), rt(B)
-				break;
+				print_instruction(CURRENT_STATE.PC-8);
+                break;
 				
 			case 0x21:	//ADDU
 				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADDU rd(ALUOutput), rs(A), rt(B)
@@ -738,7 +740,8 @@ void EX()
 				
 			case 0x24:	//AND
 				EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.B;	//AND rd(ALUOutput), rs(A), rt(B)
-				break;
+				print_instruction(CURRENT_STATE.PC-8);
+                break;
 				
 			case 0x25:	//OR
 				EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.B;	//OR rd(ALUOutput), rs(A), rt(B)
@@ -746,7 +749,8 @@ void EX()
 				
 			case 0x26:	//XOR
 				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.B;	//XOR rd(ALUOutput), rs(A), rt(B)
-				break;
+				print_instruction(CURRENT_STATE.PC-8);
+                break;
 				
 			case 0x27:	//NOR
 				EX_MEM.ALUOutput = ~(EX_MEM.A | EX_MEM.B);	//NOR rd(ALUOutput), rs(A), rt(B)
@@ -798,7 +802,8 @@ void EX()
 				
 			case 0x09:	//ADDIU
 				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.imm;	//ADDIU rt(aluoutput), rs(A), immediate
-				break;
+				print_instruction((CURRENT_STATE.PC)-8);
+                break;
 				
 			case 0x0A:	//SLTI
 				if (EX_MEM.A < EX_MEM.imm){
@@ -819,11 +824,13 @@ void EX()
 				
 			case 0x0E:	//XORI
 				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.imm;	//XORI rt(aluotput), rs(A), immediate
-				break;
+				print_instruction(CURRENT_STATE.PC-8);
+                break;
 				
 			case 0x0F:	//LUI
 				EX_MEM.ALUOutput = EX_MEM.imm << 16;	//Shift immediate left 16 bits and place in ALUOutput
-				break;
+				print_instruction(CURRENT_STATE.PC-8);
+                break;
 				
 			case 0x20:	//LB
 				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
@@ -844,6 +851,7 @@ void EX()
 				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
 				EX_MEM.B = ID_EX.B;
 				EX_MEM.imm = ID_EX.imm;
+                print_instruction(CURRENT_STATE.PC-8);
 				break;
 				
 			case 0x28:	//SB
@@ -861,10 +869,11 @@ void EX()
 				break;
 				
 			case 0x2B:	//SW
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+				EX_MEM.ALUOutput = ID_EX.A + ((ID_EX.imm & 0x8000)>0?(ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF));	//aluoutput = a + immediate
 				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
 				EX_MEM.B = ID_EX.B;
 				EX_MEM.imm = ID_EX.imm;
+                print_instruction(CURRENT_STATE.PC-8);
 				break;
 				
 			default:
