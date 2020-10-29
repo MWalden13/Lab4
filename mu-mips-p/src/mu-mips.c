@@ -6,6 +6,8 @@
 
 #include "mu-mips.h"
 
+int stall = 0;
+
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
 /***************************************************************/
@@ -313,7 +315,12 @@ void handle_pipeline()
 {
 	/*INSTRUCTION_COUNT should be incremented when instruction is done*/
 	/*Since we do not have branch/jump instructions, INSTRUCTION_COUNT should be incremented in WB stage */
-	
+
+	NEXT_STATE = CURRENT_STATE;
+	if (stall > 0){
+		stall = stall - 1;	//Decrement stall back to 0	
+	}
+	printf("Handle Pipeline: Stall = %d\n", stall);
 	WB();
 	MEM();
 	EX();
@@ -889,13 +896,104 @@ void ID()
 	/*IMPLEMENT THIS*/
 	//Second stage
 	//Initialize ID pipeline registers
-	ID_EX.IR = IF_ID.IR;
-	ID_EX.PC = IF_ID.PC;
-	ID_EX.A = 0;
-	ID_EX.B = 0;
-	ID_EX.imm = 0;
 	
-	uint32_t rs, rt, immediate;
+	if(stall == 0){
+		printf("Executing ID stage\n");
+		ID_EX.IR = IF_ID.IR;
+		ID_EX.PC = IF_ID.PC;
+		ID_EX.A = 0;
+		ID_EX.B = 0;
+		ID_EX.imm = 0;
+		ID_EX.RegWrite = 0;
+		ID_EX.RegisterRD = 0;
+		ID_EX.RegisterRS = 0;
+		ID_EX.RegisterRT = 0;
+		
+		uint32_t opcode, funct, rs, rt, rd, imm, sa;
+		
+		opcode = (IF_ID.IR & 0xFC000000) >> 26;
+		funct = IF_ID.IR & 0x0000003F;
+		
+		if(opcode == 0){
+			rs = (IF_ID.IR & 0x03E00000) >> 21;
+			rt = (IF_ID.IR & 0x001F0000) >> 16;
+			rd = (IF_ID.IR & 0x0000F800) >> 11;
+			sa = (IF_ID.IR & 0x000007C0) >> 6;
+			ID_EX.RegisterRS = rs;
+			ID_EX.RegisterRT = rt;
+			ID_EX.RegisterRD = rd;
+			
+			switch(funct){
+				case 0x00:	//SLL
+					ID_EX.imm = sa;
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x02:	//SRL
+					ID_EX.imm = sa;
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x03:	//SRA
+					ID_EX.imm = sa;
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x08:	//JR
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x09:	//JALR
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x0C:	//SYSCALL
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x10:	//MFHI
+					ID_EX.RegisterRD = rd;
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x11:	//MTHI
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x12:	//MFLO
+					ID_EX.RegisterRD = rd;
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x13:	//MTLO
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x18:	//MULT
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x19:	//MULTU
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x1A:	//DIV
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+				case 0x1B:	//DIVU
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegWrite = 1;
+					break;
+					
+			}
+			
+		}
+		
+	}
+	
+	
+	
+	
 	
 	rs = (IF_ID.IR & 0x03E00000) >> 21;	//Shift left to get rs bits 21-25
 	rt = (IF_ID.IR & 0x001F0000) >> 16;	//Shift left to get rt bits 16-20
@@ -920,10 +1018,14 @@ void IF()
 {	//something with memread
 	/*IMPLEMENT THIS*/
 	//First stage
-	
-	IF_ID.IR = mem_read_32(CURRENT_STATE.PC);	//Get current value in memory
-	IF_ID.PC = CURRENT_STATE.PC + 4;	//Increment counter
-	NEXT_STATE.PC = IF_ID.PC;	//Store incremented counter into pc's next state
+	if (stall == 0){	//Fetch instruction if there's no stall
+		IF_ID.IR = mem_read_32(CURRENT_STATE.PC);	//Get current value in memory
+		IF_ID.PC = CURRENT_STATE.PC + 4;	//Increment counter
+		NEXT_STATE.PC = IF_ID.PC;	//Store incremented counter into pc's next state
+	}
+	else{
+		printf("Stalled in IF Stage\n");	
+	}
 }
 
 
