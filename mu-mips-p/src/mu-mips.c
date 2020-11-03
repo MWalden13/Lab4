@@ -341,14 +341,6 @@ void WB()
 	uint32_t funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
 	uint32_t rt = (MEM_WB.IR & 0x001F0000) >> 16;
 	uint32_t rd = (MEM_WB.IR & 0x0000F800) >> 11;
-
-/*	if ((EX_MEM.ALUOutput && NEXT_STATE_REGS[rd] != 0) && (NEXT_STATE_REGS[rd] == NEXT_STATE_REGS[rs]) {
-		stall = 1;
-	}
-	    
-	if ((funct && NEXT_STATE_REGS[rd] != 0) && (NEXT_STATE_REGS[rd] == NEXT_STATE_REGS[rs]) {
-		stall = 1;
-	}   */
 	    
 	if (opcode == 0x00) {	 //R-type instruction
 		switch(funct) {
@@ -904,6 +896,14 @@ void ID()
 	/*IMPLEMENT THIS*/
 	//Second stage
 	//Initialize ID pipeline registers
+	
+	if ((EX_MEM.RegWrite && EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRs)) {
+		stall = 1;
+	}
+	    
+	if ((MEM_WB.RegWrite && MEM_WB.RegisterRd != 0) && (MEM_WB.RegisterRd == ID_EX.RegisterRs)) {
+		stall = 1;
+	}
 	
 	if(stall == 0){
 		printf("Executing ID stage\n");
