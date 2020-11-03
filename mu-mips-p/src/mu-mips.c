@@ -342,6 +342,14 @@ void WB()
 	uint32_t rt = (MEM_WB.IR & 0x001F0000) >> 16;
 	uint32_t rd = (MEM_WB.IR & 0x0000F800) >> 11;
 
+	if ((EX_MEM.ALUOutput && NEXT_STATE_REGS[rd] != 0) && (NEXT_STATE_REGS[rd] == NEXT_STATE_REGS[rs]) {
+		stall = 1;
+	}
+	    
+	if ((funct && NEXT_STATE_REGS[rd] != 0) && (NEXT_STATE_REGS[rd] == NEXT_STATE_REGS[rs]) {
+		stall = 1;
+	}
+	    
 	if (opcode == 0x00) {	 //R-type instruction
 		switch(funct) {
 			case 0x00:	//SLL
