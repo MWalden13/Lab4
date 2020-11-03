@@ -913,7 +913,7 @@ void ID()
 		
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		funct = IF_ID.IR & 0x0000003F;
-		
+	
 		if(opcode == 0){
 			rs = (IF_ID.IR & 0x03E00000) >> 21;
 			rt = (IF_ID.IR & 0x001F0000) >> 16;
@@ -991,7 +991,9 @@ void ID()
 		
 	}
 	
-	
+		while(stall > 0) {
+		
+		}
 	
 	
 	
@@ -1025,6 +1027,10 @@ void IF()
 	}
 	else{
 		printf("Stalled in IF Stage\n");	
+	}
+	
+	while(stall > 0) {
+		
 	}
 }
 
