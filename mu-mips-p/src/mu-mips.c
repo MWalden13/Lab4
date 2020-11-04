@@ -234,6 +234,14 @@ void handle_command() {
 		case 'p':
 			print_program(); 
 			break;
+		case 'f':
+			if (scanf("%d", &ENABLE_FORWARDING) != 1) {
+				break;
+			}
+			
+			ENABLE_FORWARDING == 0 ? printf("Forwarding OFF\n") : printf("Forwarding ON\n");
+			break;
+
 		default:
 			printf("Invalid Command.\n");
 			break;
