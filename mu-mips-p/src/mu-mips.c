@@ -471,6 +471,7 @@ void WB()
 				printf("R-type instruction not handled in wb\n");
 				break;
 		}
+		stall = 0;
 	}
 	else{
 		switch(opcode){
@@ -578,6 +579,7 @@ void WB()
                 printf("\ninstruction not handled in wb");
 				break;
 		}
+	stall = 0;
 	}
 }
 
@@ -906,6 +908,16 @@ void ID()
 	/*IMPLEMENT THIS*/
 	//Second stage
 	//Initialize ID pipeline registers
+	
+	/*ID_EX.IR = IF_ID.IR;
+	ID_EX.PC = IF_ID.PC;
+	ID_EX.A = 0;
+	ID_EX.B = 0;
+	ID_EX.imm = 0;
+	ID_EX.RegWrite = 0;
+	ID_EX.RegisterRD = 0;
+	ID_EX.RegisterRS = 0;
+	ID_EX.RegisterRT = 0;  */
 	
 	if ((EX_MEM.RegWrite && EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRs)) {
 		stall = 1;
