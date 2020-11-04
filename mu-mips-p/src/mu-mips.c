@@ -7,6 +7,8 @@
 #include "mu-mips.h"
 
 int stall = 0;
+int ForwardA = 0;
+int ForwardB = 0;
 
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
@@ -1047,6 +1049,27 @@ void IF()
 	
 	while(stall > 0) {
 		
+	}
+}
+
+// Check for Data Hazard and forward under conditions given to us in lab assignment
+void ForwardData()
+{
+	//Forward from EX stage for A
+	if (EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)){
+		ForwardA = 2;	
+	}
+	
+	if (EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRT)){
+		ForwardB = 2;	
+	}
+	
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+		ForwardA = 1;	
+	}
+	    
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+		ForwardB = 1;	
 	}
 }
 
