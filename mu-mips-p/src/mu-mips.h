@@ -107,6 +107,7 @@ void MEM();/*IMPLEMENT THIS*/
 void EX();/*IMPLEMENT THIS*/
 void ID();/*IMPLEMENT THIS*/
 void IF();/*IMPLEMENT THIS*/
+void ForwardData();
 void show_pipeline();/*IMPLEMENT THIS*/
 void initialize();
 void print_program(); /*IMPLEMENT THIS*/
