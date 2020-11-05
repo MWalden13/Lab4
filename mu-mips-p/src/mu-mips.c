@@ -649,253 +649,108 @@ void EX()
 	/*IMPLEMENT THIS*/
 	//Third stage
 	//Initialize EX pipeline registers
-	EX_MEM.IR = ID_EX.IR;
-	EX_MEM.PC = ID_EX.PC;
-	EX_MEM.A = ID_EX.A;
-	EX_MEM.B = ID_EX.B;
-	EX_MEM.imm = ID_EX.imm;
-	EX_MEM.ALUOutput = 0;
 	
-	uint32_t opcode, funct, sa;
-	uint64_t multiply;
-	
-	opcode = (EX_MEM.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
-	funct = EX_MEM.IR & 0x0000003F;	//Get first 6 bits for function code
-	sa = (EX_MEM.IR & 0x000007C0) >> 6;	//Get shift amount
-	
-	if (opcode == 0x00){	//R-type instruction
-		switch(funct){
-			case 0x00:	//SLL
-				EX_MEM.ALUOutput = EX_MEM.B << sa;	//SLL, rd(aluoutput), rt(EX_MEM.B), sa
-				break;
-				
-			case 0x02:	//SRL
-				EX_MEM.ALUOutput = EX_MEM.B >> sa;	//SRL, rd(aluoutput), rt(EX_MEM.B), sa
-				break;
-				
-			case 0x03:	//SRA
-				EX_MEM.ALUOutput = EX_MEM.B >> sa;	//Same as SRL
-				break;
-				
-			case 0x08:	//JR
-				break;
-				
-			case 0x09:	//JALR
-				break;
-				
-			case 0x0C:	//SYSCALL
-                if(CURRENT_STATE.REGS[2] == 0xa){
-                    RUN_FLAG = FALSE;
-                    }
-                    print_instruction(CURRENT_STATE.PC-8);
-				break;
-				
-			case 0x10:	//MFHI
-				EX_MEM.ALUOutput = CURRENT_STATE.HI;	//Contents of HI are loaded into rd(aluoutput)
-				break;
-				
-			case 0x11:	//MTHI
-				NEXT_STATE.HI = EX_MEM.A;	//Contents of rs(A) are loaded into HI
-				break;
-				
-			case 0x12:	//MFLO
-				EX_MEM.ALUOutput = CURRENT_STATE.LO;	//Contents of LO are loaded into rd(aluoutput)
-				break;
-				
-			case 0x13:	//MTLO
-				NEXT_STATE.LO = EX_MEM.A;	//Contents of rs(A) are loaded into LO
-				break;
-				
-			case 0x18:	//MULT
-				multiply = EX_MEM.A * EX_MEM.B;	//multiply rs and rt, store low order into LO and high order into HI
-				NEXT_STATE.LO = 0x00000000FFFFFFFF & multiply;
-				NEXT_STATE.HI = (0xFFFFFFFF00000000 & multiply) >> 32;
-				break;
-				
-			case 0x19:	//MULTU
-				multiply = EX_MEM.A * EX_MEM.B;	//multiply rs and rt, store low order into LO and high order into HI
-				NEXT_STATE.LO = 0x00000000FFFFFFFF & multiply;
-				NEXT_STATE.HI = (0xFFFFFFFF00000000 & multiply) >> 32;
-				break;
-				
-			case 0x1A:	//DIV
-				if (EX_MEM.B == 0){
-					printf("Cannot divide by 0\n");
-				}
-				else{
-					NEXT_STATE.LO = EX_MEM.A / EX_MEM.B;	//same as lab 1
-					NEXT_STATE.HI = EX_MEM.A % EX_MEM.B;
-				}
-				break;
-				
-			case 0x1B:	//DIVU
-				if (EX_MEM.B == 0){
-					printf("Cannot divide by 0\n");
-				}
-				else{
-					NEXT_STATE.LO = EX_MEM.A / EX_MEM.B;	//same as lab 1
-					NEXT_STATE.HI = EX_MEM.A % EX_MEM.B;
-				}
-				break;
-				
-			case 0x20:	//ADD
-				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADD rd(ALUOutput), rs(A), rt(B)
-				print_instruction(CURRENT_STATE.PC-8);
-                break;
-				
-			case 0x21:	//ADDU
-				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADDU rd(ALUOutput), rs(A), rt(B)
-				break;
-				
-			case 0x22:	//SUB
-				EX_MEM.ALUOutput = EX_MEM.A - EX_MEM.B;	//SUB rd(ALUOutput), rs(A), rt(B)
-				break;
-				
-			case 0x23:	//SUBU
-				EX_MEM.ALUOutput = EX_MEM.A - EX_MEM.B;	//SUBU rd(ALUOutput), rs(A), rt(B)
-				break;
-				
-			case 0x24:	//AND
-				EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.B;	//AND rd(ALUOutput), rs(A), rt(B)
-				print_instruction(CURRENT_STATE.PC-8);
-                break;
-				
-			case 0x25:	//OR
-				EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.B;	//OR rd(ALUOutput), rs(A), rt(B)
-				break;
-				
-			case 0x26:	//XOR
-				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.B;	//XOR rd(ALUOutput), rs(A), rt(B)
-				print_instruction(CURRENT_STATE.PC-8);
-                break;
-				
-			case 0x27:	//NOR
-				EX_MEM.ALUOutput = ~(EX_MEM.A | EX_MEM.B);	//NOR rd(ALUOutput), rs(A), rt(B)
-				break;
-				
-			case 0x2A:	//SLT
-				if(EX_MEM.A < EX_MEM.B){
-					EX_MEM.ALUOutput = 1;	//If rs(A) is less than rt(B), result = 1
-				}
-				else{
-					EX_MEM.ALUOutput = 0;	//Else, result = 0
-				}
-				break;
-				
-			default:
-				printf("R-type instruction not handled in ex\n");
-				break;
-		}
+	if (ID_EX.stall == 1){
+		printf("Stalled in EX stage\n");
+		EX_MEM.stall = 1;
+		EX_MEM.IR = 0;
+		EX_MEM.PC = 0;
+		EX_MEM.A = 0;
+		EX_MEM.B = 0;
+		EX_MEM.imm = 0;
+		EX_MEM.ALUOutput = 0;
+		EX_MEM.RegisterRS = 0;
+		EX_MEM.RegisterRT = 0;
+		EX_MEM.RegisterRD = 0;
+		EX_MEM.RegWrite = 0;
 	}
-	else{
-		switch(opcode){
-			case 0x01:	//BLTZ OR BGEZ
-				break;
-				
-			case 0x02:	//J
-				break;
-				
-			case 0x03:	//JAL
-				break;
-				
-			case 0x04:	//BEQ
-				break;
-				
-			case 0x05:	//BNE
-				break;
-				
-			case 0x06:	//BLEZ
-				break;
-				
-			case 0x07:	//BGTZ
-				break;
-				
-			case 0x08:	//ADDI
-				if (EX_MEM.imm >> 15){	//negative
-					EX_MEM.imm = 0xFFFF0000 | EX_MEM.imm;	//sign extended
-				}
-				EX_MEM.ALUOutput = EX_MEM.imm + EX_MEM.A;
-				break;
-				
-			case 0x09:	//ADDIU
-				EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.imm;	//ADDIU rt(aluoutput), rs(A), immediate
-				print_instruction((CURRENT_STATE.PC)-8);
-                break;
-				
-			case 0x0A:	//SLTI
-				if (EX_MEM.A < EX_MEM.imm){
-					EX_MEM.ALUOutput = 1;	//If rs(A) < immediate, rt(aluoutput) = 1	
-				}
-				else{
-					EX_MEM.ALUOutput = 0;	//If rs(A) > immediate, rt(aluoutput) = 0	
-				}
-				break;
-				
-			case 0x0C:	//ANDI
-				EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.imm;	//ANDI rt(aluotput), rs(A), immediate
-				break;
-				
-			case 0x0D:	//ORI
-				EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.imm;	//ORI rt(aluotput), rs(A), immediate
-				break;
-				
-			case 0x0E:	//XORI
-				EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.imm;	//XORI rt(aluotput), rs(A), immediate
-				print_instruction(CURRENT_STATE.PC-8);
-                break;
-				
-			case 0x0F:	//LUI
-				EX_MEM.ALUOutput = EX_MEM.imm << 16;	//Shift immediate left 16 bits and place in ALUOutput
-				print_instruction(CURRENT_STATE.PC-8);
-                break;
-				
-			case 0x20:	//LB
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
-				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
-				EX_MEM.B = ID_EX.B;
-				EX_MEM.imm = ID_EX.imm;
-				break;
-				
-			case 0x21:	//LH
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
-				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
-				EX_MEM.B = ID_EX.B;
-				EX_MEM.imm = ID_EX.imm;
-				break;
+	
+	if (ID_EX.stall == 0) {
+		printf("Running EX stage\n");
+		EX_MEM.IR = ID_EX.IR;
+		EX_MEM.PC = ID_EX.PC;
+		EX_MEM.A = ID_EX.A;
+		EX_MEM.B = ID_EX.B;
+		EX_MEM.imm = ID_EX.imm;
+		EX_MEM.ALUOutput = 0;
+		EX_MEM.RegisterRS = ID_EX.RegisterRS;
+		EX_MEM.RegisterRT = ID_EX.RegisterRT;
+		EX_MEM.RegisterRD = ID_EX.RegisterRD;
+		EX_MEM.RegWrite = ID_EX.RegWrite;
+		EX_MEM.stall = ID_EX.stall;
+		EX_MEM.Mem = ID_EX.Mem;
+		
+		if (EX_MEM.IR == 0){
+			return;	
+		}
+		
+		uint32_t opcode, funct, sa;
+		opcode = (EX_MEM.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
+		funct = EX_MEM.IR & 0x0000003F;	//Get first 6 bits for function code
+		sa = (EX_MEM.IR & 0x000007C0) >> 6;	//Get shift amount
+		
+		if (opcode == 0x00){	//R-type instruction
+			switch(funct){
+				case 0x20:	//ADD
+					EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.B;	//ADD rd(ALUOutput), rs(A), rt(B)
+					print_instruction(CURRENT_STATE.PC-8);
+					break;
 					
-			case 0x23:	//LW
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
-				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
-				EX_MEM.B = ID_EX.B;
-				EX_MEM.imm = ID_EX.imm;
-                print_instruction(CURRENT_STATE.PC-8);
-				break;
-				
-			case 0x28:	//SB
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
-				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
-				EX_MEM.B = ID_EX.B;
-				EX_MEM.imm = ID_EX.imm;
-				break;
-				
-			case 0x29:	//SH
-				EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
-				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
-				EX_MEM.B = ID_EX.B;
-				EX_MEM.imm = ID_EX.imm;
-				break;
-				
-			case 0x2B:	//SW
-				EX_MEM.ALUOutput = ID_EX.A + ((ID_EX.imm & 0x8000)>0?(ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF));	//aluoutput = a + immediate
-				EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
-				EX_MEM.B = ID_EX.B;
-				EX_MEM.imm = ID_EX.imm;
-                print_instruction(CURRENT_STATE.PC-8);
-				break;
-				
-			default:
-                printf("\ninstruction not handled in ex");
-				break;
+				case 0x24:	//AND
+					EX_MEM.ALUOutput = EX_MEM.A & EX_MEM.B;	//AND rd(ALUOutput), rs(A), rt(B)
+					print_instruction(CURRENT_STATE.PC-8);
+					break;
+					
+				case 0x25:	//OR
+					EX_MEM.ALUOutput = EX_MEM.A | EX_MEM.B;	//OR rd(ALUOutput), rs(A), rt(B)
+					break;
+					
+				case 0x26:	//XOR	
+					EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.B;	//XOR rd(ALUOutput), rs(A), rt(B)
+					print_instruction(CURRENT_STATE.PC-8);
+					break;
+					
+				case 0x0C:	//SYSCALL
+					if(CURRENT_STATE.REGS[2] == 0xa){
+                   				RUN_FLAG = FALSE;
+                    			}
+                    			print_instruction(CURRENT_STATE.PC-8);
+					break; 
+			}
+		}
+		else {	//I/J type
+			switch(opcode){
+				case 0x09:	//ADDIU
+					EX_MEM.ALUOutput = EX_MEM.A + EX_MEM.imm;	//ADDIU rt(aluoutput), rs(A), immediate
+					print_instruction(CURRENT_STATE.PC-8);
+					break;
+					
+				case 0x0E:	//XORI
+					EX_MEM.ALUOutput = EX_MEM.A ^ EX_MEM.imm;	//XORI rt(aluotput), rs(A), immediate
+					print_instruction(CURRENT_STATE.PC-8);
+					break;
+					
+				case 0x0F:	//LUI
+					EX_MEM.ALUOutput = EX_MEM.imm << 16;	//Shift immediate left 16 bits and place in ALUOutput
+					print_instruction(CURRENT_STATE.PC-8);
+					break;
+					
+				case 0x23:	//LW
+					EX_MEM.ALUOutput = ID_EX.A + ID_EX.imm;	//aluoutput = a + immediate
+					EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+					EX_MEM.B = ID_EX.B;
+					EX_MEM.imm = ID_EX.imm;
+                			print_instruction(CURRENT_STATE.PC-8);
+					break;
+					
+				case 0x2B:	//SW
+					EX_MEM.ALUOutput = ID_EX.A + ((ID_EX.imm & 0x8000)>0?(ID_EX.imm | 0xFFFF0000) : (ID_EX.imm & 0x0000FFFF));	//aluoutput = a + immediate
+					EX_MEM.A = ID_EX.A;	//Update Memory locations with current values
+					EX_MEM.B = ID_EX.B;
+					EX_MEM.imm = ID_EX.imm;
+                			print_instruction(CURRENT_STATE.PC-8);
+					break;
+			}
 		}
 	}
 }
@@ -904,29 +759,7 @@ void EX()
 /* instruction decode (ID) pipeline stage:                                                         */ 
 /************************************************************/
 void ID()
-{
-	/*IMPLEMENT THIS*/
-	//Second stage
-	//Initialize ID pipeline registers
-	
-	/*ID_EX.IR = IF_ID.IR;
-	ID_EX.PC = IF_ID.PC;
-	ID_EX.A = 0;
-	ID_EX.B = 0;
-	ID_EX.imm = 0;
-	ID_EX.RegWrite = 0;
-	ID_EX.RegisterRD = 0;
-	ID_EX.RegisterRS = 0;
-	ID_EX.RegisterRT = 0;  */
-	
-	if ((EX_MEM.RegWrite && EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)) {
-		stall = 1;
-	}
-	    
-	if ((MEM_WB.RegWrite && MEM_WB.RegisterRD != 0) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)) {
-		stall = 1;
-	}
-	
+{	
 	if(stall == 0){
 		printf("Executing ID stage\n");
 		ID_EX.IR = IF_ID.IR;
@@ -939,14 +772,14 @@ void ID()
 		ID_EX.RegisterRS = 0;
 		ID_EX.RegisterRT = 0;
 		
-		uint32_t opcode, funct, rs, rt, rd, imm;// sa;
+		uint32_t opcode, funct, rs, rt, rd, imm, sa;
 		
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		funct = IF_ID.IR & 0x0000003F;
 		rs = (IF_ID.IR & 0x03E00000) >> 21;
 		rt = (IF_ID.IR & 0x001F0000) >> 16;
 		rd = (IF_ID.IR & 0x0000F800) >> 11;
-		//sa = (IF_ID.IR & 0x000007C0) >> 6;
+		sa = (IF_ID.IR & 0x000007C0) >> 6;
 		imm = IF_ID.IR & 0x0000FFFF;
 		
 		if(opcode == 0){
@@ -1011,9 +844,36 @@ void ID()
 	
 	else {
 		ID_EX.stall = 1;
-		IF_ID.IR = ID_EX.IR;
+		IF_ID.IR = ID_EX.IR:
 		printf("Stall is needed\n");
 		return;
+	}
+	
+	ForwardData();	//Check for data hazard and see if we can forward
+	
+	if (stall != 0){
+		printf("Data Hazard in ID stage\n");
+		ID_EX.stall = 1;
+	}
+	else{
+		ID_EX.stall = 0;	
+	}
+	
+	if (ForwardA == 1){
+		ID_EX.A = EX_MEM.ALUOutput;
+		ForwardA = 0;
+	}
+	if (ForwardB == 1){
+		ID_EX.B = EX_MEM.ALUOutput;
+		ForwardB = 0;
+	}
+	if (ForwardA == 2){
+		ID_EX.A = MEM_WB.LMD;
+		ForwardA = 0;
+	}
+	if (ForwardB == 2){
+		ID_EX.B = MEM_WB.LMD;
+		ForwardB = 0;
 	}
 	
 }
@@ -1040,19 +900,39 @@ void ForwardData()
 {
 	//Forward from EX stage for A
 	if (EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)){
-		ForwardA = 2;	
+		if (ENABLE_FORWARDING == 1){
+			ForwardA = 2;	
+		}
+		else{
+			stall = 2;	
+		}
 	}
 	
 	if (EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRT)){
-		ForwardB = 2;	
+		if (ENABLE_FORWARDING == 1){
+			ForwardB = 2;	
+		}
+		else{
+			stall = 2;	
+		}	
 	}
 	
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
-		ForwardA = 1;	
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+		if (ENABLE_FORWARDING == 1){
+			ForwardA = 1;	
+		}
+		else{
+			stall = 1;	
+		}
 	}
 	    
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
-		ForwardB = 1;	
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+		if (ENABLE_FORWARDING == 1){
+			ForwardB = 1;	
+		}
+		else{
+			stall = 1;	
+		}	
 	}
 }
 
