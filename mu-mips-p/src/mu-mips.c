@@ -1011,7 +1011,7 @@ void ID()
 	
 	else {
 		ID_EX.stall = 1;
-		IF_ID.IR = ID_EX.IR:
+		IF_ID.IR = ID_EX.IR;
 		printf("Stall is needed\n");
 		return;
 	}
