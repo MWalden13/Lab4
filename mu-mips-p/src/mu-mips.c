@@ -943,102 +943,77 @@ void ID()
 		
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		funct = IF_ID.IR & 0x0000003F;
-	
+		rs = (IF_ID.IR & 0x03E00000) >> 21;
+		rt = (IF_ID.IR & 0x001F0000) >> 16;
+		rd = (IF_ID.IR & 0x0000F800) >> 11;
+		sa = (IF_ID.IR & 0x000007C0) >> 6;
+		imm = IF_ID.IR & 0x0000FFFF;
+		
 		if(opcode == 0){
-			rs = (IF_ID.IR & 0x03E00000) >> 21;
-			rt = (IF_ID.IR & 0x001F0000) >> 16;
-			rd = (IF_ID.IR & 0x0000F800) >> 11;
-			sa = (IF_ID.IR & 0x000007C0) >> 6;
-			ID_EX.RegisterRS = rs;
-			ID_EX.RegisterRT = rt;
-			ID_EX.RegisterRD = rd;
-			
 			switch(funct){
-				case 0x00:	//SLL
-					ID_EX.imm = sa;
+				case 0x20:	//ADD
+					ID_EX.A = NEXT_STATE.REGS[rs];
 					ID_EX.B = NEXT_STATE.REGS[rt];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x02:	//SRL
-					ID_EX.imm = sa;
-					ID_EX.B = NEXT_STATE.REGS[rt];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x03:	//SRA
-					ID_EX.imm = sa;
-					ID_EX.B = NEXT_STATE.REGS[rt];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x08:	//JR
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x09:	//JALR
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x0C:	//SYSCALL
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x10:	//MFHI
 					ID_EX.RegisterRD = rd;
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x11:	//MTHI
-					ID_EX.A = NEXT_STATE.REGS[rs];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x12:	//MFLO
-					ID_EX.RegisterRD = rd;
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x13:	//MTLO
-					ID_EX.A = NEXT_STATE.REGS[rs];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x18:	//MULT
-					ID_EX.A = NEXT_STATE.REGS[rs];
-					ID_EX.B = NEXT_STATE.REGS[rt];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x19:	//MULTU
-					ID_EX.A = NEXT_STATE.REGS[rs];
-					ID_EX.B = NEXT_STATE.REGS[rt];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x1A:	//DIV
-					ID_EX.A = NEXT_STATE.REGS[rs];
-					ID_EX.B = NEXT_STATE.REGS[rt];
-					ID_EX.RegWrite = 1;
-					break;
-				case 0x1B:	//DIVU
-					ID_EX.A = NEXT_STATE.REGS[rs];
-					ID_EX.B = NEXT_STATE.REGS[rt];
 					ID_EX.RegWrite = 1;
 					break;
 					
+				case 0x24:	//AND
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegisterRD = rd;
+					ID_EX.RegWrite = 1;
+					break;
+					
+				case 0x25:	//OR
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegisterRD = rd;
+					ID_EX.RegWrite = 1;
+					break;
+					
+				case 0x26:	//XOR	
+					ID_EX.A = NEXT_STATE.REGS[rs];
+					ID_EX.B = NEXT_STATE.REGS[rt];
+					ID_EX.RegisterRD = rd;
+					ID_EX.RegWrite = 1;
+					break;
+					
+				case 0x0C:	//SYSCALL
+					ID_EX.RegWrite = 1;
+					break;
+					
+				default:
+					printf("Instruction not handled in ID stage\n");
+			}
+		}
+		else {	//I or J type
+			ID_EX.A = NEXT_STATE.REGS[rs];
+			ID_EX.B = NEXT_STATE.REGS[rt];
+			ID_EX.imm = imm;
+			ID_EX.RegisterRS = rs;
+			ID_EX.RegisterRT = rt;
+			
+			switch (opcode){
+				case 0x23:	//LW
+					ID_EX.Mem = 1;
+					break;
+				case 0x2B:	//SW
+					ID_EX.RegWrite = 0;
+					break;
+				default:
+					ID_EX.RegWrite = 1;
 			}
 			
 		}
 		
 	}
 	
-		while(stall > 0) {
-		
-		}
-	
-	
-	
-	rs = (IF_ID.IR & 0x03E00000) >> 21;	//Shift left to get rs bits 21-25
-	rt = (IF_ID.IR & 0x001F0000) >> 16;	//Shift left to get rt bits 16-20
-	immediate = IF_ID.IR & 0x0000FFFF;	//Get first 16 bits of instruction
-	
-	ID_EX.A = CURRENT_STATE.REGS[rs];	//Set A to value in current state of rs
-	ID_EX.B = CURRENT_STATE.REGS[rt];	//Set B to value in current state of rt
-	
-	if ((immediate >> 15) == 1){	//If negative
-		ID_EX.imm = immediate | 0xFFFF0000;	//Sign extend and store in imm		
-	}
-	else{
-		ID_EX.imm = immediate & 0x0000FFFF;	//Else it's positive, store in imm	
+	else {
+		ID_EX.stall = 1;
+		IF_ID.IR = ID_EX.IR:
+		printf("Stall is needed\n");
+		return;
 	}
 	
 }
@@ -1057,10 +1032,6 @@ void IF()
 	}
 	else{
 		printf("Stalled in IF Stage\n");	
-	}
-	
-	while(stall > 0) {
-		
 	}
 }
 
