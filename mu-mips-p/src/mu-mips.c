@@ -919,11 +919,11 @@ void ID()
 	ID_EX.RegisterRS = 0;
 	ID_EX.RegisterRT = 0;  */
 	
-	if ((EX_MEM.RegWrite && EX_MEM.RegisterRd != 0) && (EX_MEM.RegisterRd == ID_EX.RegisterRs)) {
+	if ((EX_MEM.RegWrite && EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)) {
 		stall = 1;
 	}
 	    
-	if ((MEM_WB.RegWrite && MEM_WB.RegisterRd != 0) && (MEM_WB.RegisterRd == ID_EX.RegisterRs)) {
+	if ((MEM_WB.RegWrite && MEM_WB.RegisterRD != 0) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)) {
 		stall = 1;
 	}
 	
@@ -939,14 +939,14 @@ void ID()
 		ID_EX.RegisterRS = 0;
 		ID_EX.RegisterRT = 0;
 		
-		uint32_t opcode, funct, rs, rt, rd, imm, sa;
+		uint32_t opcode, funct, rs, rt, rd, imm;// sa;
 		
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		funct = IF_ID.IR & 0x0000003F;
 		rs = (IF_ID.IR & 0x03E00000) >> 21;
 		rt = (IF_ID.IR & 0x001F0000) >> 16;
 		rd = (IF_ID.IR & 0x0000F800) >> 11;
-		sa = (IF_ID.IR & 0x000007C0) >> 6;
+		//sa = (IF_ID.IR & 0x000007C0) >> 6;
 		imm = IF_ID.IR & 0x0000FFFF;
 		
 		if(opcode == 0){
@@ -1047,11 +1047,11 @@ void ForwardData()
 		ForwardB = 2;	
 	}
 	
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
 		ForwardA = 1;	
 	}
 	    
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
 		ForwardB = 1;	
 	}
 }
