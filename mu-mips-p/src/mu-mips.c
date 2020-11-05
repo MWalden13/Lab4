@@ -885,6 +885,11 @@ void IF()
 {	//something with memread
 	/*IMPLEMENT THIS*/
 	//First stage
+	
+	/*while(stall > 0) {
+		
+	} */
+	
 	if (stall == 0){	//Fetch instruction if there's no stall
 		IF_ID.IR = mem_read_32(CURRENT_STATE.PC);	//Get current value in memory
 		IF_ID.PC = CURRENT_STATE.PC + 4;	//Increment counter
