@@ -684,10 +684,10 @@ void EX()
 			return;	
 		}
 		
-		uint32_t opcode, funct, sa;
+		uint32_t opcode, funct; //sa;
 		opcode = (EX_MEM.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 		funct = EX_MEM.IR & 0x0000003F;	//Get first 6 bits for function code
-		sa = (EX_MEM.IR & 0x000007C0) >> 6;	//Get shift amount
+		//sa = (EX_MEM.IR & 0x000007C0) >> 6;	//Get shift amount
 		
 		if (opcode == 0x00){	//R-type instruction
 			switch(funct){
@@ -772,14 +772,14 @@ void ID()
 		ID_EX.RegisterRS = 0;
 		ID_EX.RegisterRT = 0;
 		
-		uint32_t opcode, funct, rs, rt, rd, imm, sa;
+		uint32_t opcode, funct, rs, rt, rd, imm;// sa;
 		
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		funct = IF_ID.IR & 0x0000003F;
 		rs = (IF_ID.IR & 0x03E00000) >> 21;
 		rt = (IF_ID.IR & 0x001F0000) >> 16;
 		rd = (IF_ID.IR & 0x0000F800) >> 11;
-		sa = (IF_ID.IR & 0x000007C0) >> 6;
+		//sa = (IF_ID.IR & 0x000007C0) >> 6;
 		imm = IF_ID.IR & 0x0000FFFF;
 		
 		if(opcode == 0){
@@ -844,7 +844,7 @@ void ID()
 	
 	else {
 		ID_EX.stall = 1;
-		IF_ID.IR = ID_EX.IR:
+		IF_ID.IR = ID_EX.IR;
 		printf("Stall is needed\n");
 		return;
 	}
@@ -922,7 +922,7 @@ void ForwardData()
 		}	
 	}
 	
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
 		if (ENABLE_FORWARDING == 1){
 			ForwardA = 1;	
 		}
@@ -931,7 +931,7 @@ void ForwardData()
 		}
 	}
 	    
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT) {
+	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
 		if (ENABLE_FORWARDING == 1){
 			ForwardB = 1;	
 		}
