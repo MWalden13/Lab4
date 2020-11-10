@@ -770,31 +770,86 @@ void EX()
 void ID()
 {	
 	if(stall == 0){
-		ID_EX.IR = IF_ID.IR;
-		ID_EX.PC = IF_ID.PC;
-		ID_EX.A = 0;
-		ID_EX.B = 0;
-		ID_EX.imm = 0;
+                printf("Executing ID stage\n");
+                ID_EX.IR = IF_ID.IR;
+                ID_EX.PC = IF_ID.PC;
+                ID_EX.A = 0;
+                ID_EX.B = 0;
+                ID_EX.imm = 0;
+                ID_EX.RegWrite = 0;
+                ID_EX.RegisterRD = 0;
+                ID_EX.RegisterRS = 0;
+                ID_EX.RegisterRT = 0;
+
+                uint32_t opcode, funct, rs, rt, rd, imm;// sa;
+
+                opcode = (IF_ID.IR & 0xFC000000) >> 26;
+                funct = IF_ID.IR & 0x0000003F;
+                rs = (IF_ID.IR & 0x03E00000) >> 21;
+                rt = (IF_ID.IR & 0x001F0000) >> 16;
+                rd = (IF_ID.IR & 0x0000F800) >> 11;
+                //sa = (IF_ID.IR & 0x000007C0) >> 6;
+                imm = IF_ID.IR & 0x0000FFFF;
 	
-		uint32_t rs, rt, immediate, opcode;
-	
-		rs = (IF_ID.IR & 0x03E00000) >> 21;	//Shift left to get rs bits 21-25
-		rt = (IF_ID.IR & 0x001F0000) >> 16;	//Shift left to get rt bits 16-20
-		immediate = IF_ID.IR & 0x0000FFFF;	//Get first 16 bits of instruction
-		opcode = (IF_ID.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
-	
-		ID_EX.A = CURRENT_STATE.REGS[rs];	//Set A to value in current state of rs
-		ID_EX.B = CURRENT_STATE.REGS[rt];	//Set B to value in current state of rt
-	
-		if ((immediate >> 15) == 1){	//If negative
-			ID_EX.imm = immediate | 0xFFFF0000;	//Sign extend and store in imm		
-		}
-		else{
-			ID_EX.imm = immediate & 0x0000FFFF;	//Else it's positive, store in imm	
-		}
+		if(opcode == 0){
+                        switch(funct){
+                                case 0x20:      //ADD
+                                        ID_EX.A = NEXT_STATE.REGS[rs];
+                                        ID_EX.B = NEXT_STATE.REGS[rt];
+                                        ID_EX.RegisterRD = rd;
+                                        ID_EX.RegWrite = 1;
+                                        break;
+
+                                case 0x24:      //AND
+                                        ID_EX.A = NEXT_STATE.REGS[rs];
+                                        ID_EX.B = NEXT_STATE.REGS[rt];
+                                        ID_EX.RegisterRD = rd;
+                                        ID_EX.RegWrite = 1;
+                                        break;
+
+                                case 0x25:      //OR
+                                        ID_EX.A = NEXT_STATE.REGS[rs];
+                                        ID_EX.B = NEXT_STATE.REGS[rt];
+                                        ID_EX.RegisterRD = rd;
+                                        ID_EX.RegWrite = 1;
+                                        break;
+
+                                case 0x26:      //XOR   
+                                        ID_EX.A = NEXT_STATE.REGS[rs];
+                                        ID_EX.B = NEXT_STATE.REGS[rt];
+                                        ID_EX.RegisterRD = rd;
+                                        ID_EX.RegWrite = 1;
+                                        break;
+
+                                case 0x0C:      //SYSCALL
+                                        ID_EX.RegWrite = 1;
+                                        break;
+
+                                default:
+                                        printf("Instruction not handled in ID stage\n");
+                        }
+                }
 		
+		else {  //I or J type
+                        ID_EX.A = NEXT_STATE.REGS[rs];
+                        ID_EX.B = NEXT_STATE.REGS[rt];
+                        ID_EX.imm = imm;
+                        ID_EX.RegisterRS = rs;
+                        ID_EX.RegisterRT = rt;
+
+                        switch (opcode){
+                                case 0x23:      //LW
+                                        ID_EX.Mem = 1;
+                                        break;
+                                case 0x2B:      //SW
+                                        ID_EX.RegWrite = 0;
+                                        break;
+                                default:
+                                        ID_EX.RegWrite = 1;
+                        }
+
+                }
 	}
-	
 	else {
 		ID_EX.stall = 1;
 		IF_ID.IR = ID_EX.IR;
