@@ -427,7 +427,7 @@ void WB()
 				break;
 				
 			case 0x20:	//ADD
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -447,17 +447,17 @@ void WB()
 				break;
 				
 			case 0x24:	//AND
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x25:	//OR
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x26:	//XOR
-				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -627,7 +627,7 @@ void MEM()
 				break;
 				
 			case 0x23:	//LW
-				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 32 bits from memory and place in lmd
+				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(EX_MEM.ALUOutput);	//Get first 32 bits from memory and place in lmd
 				printf("lw mem address = %X\n", MEM_WB.ALUOutput);
                 break;
 				
@@ -640,7 +640,7 @@ void MEM()
 				break;
 				
 			case 0x2B:	//SW
-				mem_write_32(MEM_WB.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
+				mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);	//Write B into ALUOutput memory
 				break;
 				
 			default:
@@ -768,13 +768,17 @@ void EX()
 /* instruction decode (ID) pipeline stage:                                                         */ 
 /************************************************************/
 void ID()
-{
-	ID_EX.IR = IF_ID.IR;
-	uint32_t opcode;
-	opcode = (IF_ID.IR & 0xFC000000) >> 26;
+{	
+	if (stall != 0){
+		IF_ID.IR = ID_EX.IR;
+                ID_EX.stall = 1;
+                printf("Stall is needed\n");
+                return;	
+	}
 	
 	if(stall == 0){
                 printf("Executing ID stage\n");
+		ID_EX.IR = IF_ID.IR;
                 ID_EX.PC = IF_ID.PC;
                 ID_EX.A = 0;
                 ID_EX.B = 0;
@@ -784,8 +788,9 @@ void ID()
                 ID_EX.RegisterRS = 0;
                 ID_EX.RegisterRT = 0;
 
-                uint32_t funct, rs, rt, rd, imm;// sa;
+                uint32_t opcode, funct, rs, rt, rd, imm;// sa;
 
+		opcode = (IF_ID.IR & 0xFC000000) >> 26;
                 funct = IF_ID.IR & 0x0000003F;
                 rs = (IF_ID.IR & 0x03E00000) >> 21;
                 rt = (IF_ID.IR & 0x001F0000) >> 16;
@@ -854,11 +859,7 @@ void ID()
 
                 }
 	}
-	else {
-		ID_EX.stall = 1;
-		printf("Stall is needed\n");
-		return;
-	}
+
 	
 	ForwardData();	//Check for data hazard and see if we can forward
 	
@@ -879,6 +880,8 @@ void ID()
 		ForwardB = 0;
 	}
 	if (ForwardA == 10){
+		uint32_t opcode;
+		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if (opcode == 0x20 || opcode == 0x21 || opcode == 0x23){	//For loads
 			ID_EX.A = MEM_WB.LMD;
 		}
@@ -888,6 +891,8 @@ void ID()
 		ForwardA = 0;
 	}
 	if (ForwardB == 10){
+		uint32_t opcode;
+                opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if (opcode == 0x20 || opcode == 0x21 || opcode == 0x23){	//For loads
 			ID_EX.B = MEM_WB.LMD;
 		}
@@ -925,7 +930,7 @@ void IF()
 void ForwardData()
 {
 	//Forward from EX stage for A
-	if (EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)){
+	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)){
 		if (ENABLE_FORWARDING == 1){
 			ForwardA = 10;	
 		}
@@ -934,7 +939,7 @@ void ForwardData()
 		}
 	}
 	
-	if (EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0) && (EX_MEM.RegisterRD == ID_EX.RegisterRT)){
+	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT)){
 		if (ENABLE_FORWARDING == 1){
 			ForwardB = 10;	
 		}
@@ -942,24 +947,60 @@ void ForwardData()
 			stall = 2;	
 		}	
 	}
+
+	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRT != 0)) && (EX_MEM.RegisterRT == ID_EX.RegisterRS)){
+                if (ENABLE_FORWARDING == 1){
+                        ForwardA = 10;
+                }
+                else{
+                        stall = 2;
+                }
+        }
+
+	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRT != 0)) && (EX_MEM.RegisterRT == ID_EX.RegisterRT)){
+                if (ENABLE_FORWARDING == 1){
+                        ForwardB = 10;
+                }
+                else{
+                        stall = 2;
+                }
+        }
 	
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
-		if (ENABLE_FORWARDING == 1){
-			ForwardA = 01;	
-		}
-		else{
-			stall = 1;	
-		}
-	}
-	    
-	if (MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0) && !(EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)) {
-		if (ENABLE_FORWARDING == 1){
-			ForwardB = 01;	
-		}
-		else{
-			stall = 1;	
-		}	
-	}
+	if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)){
+                if (ENABLE_FORWARDING == 1){
+                        ForwardA = 10;
+                }
+                else{
+                        stall = 1;
+                }
+        }
+
+        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)){
+                if (ENABLE_FORWARDING == 1){
+                        ForwardB = 10;
+                }
+                else{
+                        stall = 1;
+                }
+        }
+
+        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT == ID_EX.RegisterRS)){
+                if (ENABLE_FORWARDING == 1){
+                        ForwardA = 10;
+                }
+                else{
+                        stall = 1;
+                }
+        }
+
+        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT ==ID_EX.RegisterRT)){
+                if (ENABLE_FORWARDING == 1){
+                        ForwardB = 10;
+                }
+                else{
+                        stall = 1;
+                }
+        }
 }
 
 
@@ -971,6 +1012,7 @@ void initialize() {
 	CURRENT_STATE.PC = MEM_TEXT_BEGIN;
 	NEXT_STATE = CURRENT_STATE;
 	RUN_FLAG = TRUE;
+	stall = 0;
 }
 
 /************************************************************/
