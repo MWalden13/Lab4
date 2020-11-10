@@ -347,6 +347,9 @@ void WB()
 	/*IMPLEMENT THIS*/
 	//Fifth stage
 	
+	if (MEM_WB.stall == 1){
+		return;
+	}
 	
 	uint32_t opcode = (MEM_WB.IR & 0xFC000000) >> 26;	//Shift left to get opcode bits 26-31
 	uint32_t funct = MEM_WB.IR & 0x0000003F;	//Get first 6 bits for function code
@@ -592,6 +595,11 @@ void MEM()
 	/*IMPLEMENT THIS*/
 	//Fourth stage
 	//Load/Store only?
+
+	if (EX_MEM.stall == 1){
+		return;
+	}
+
 	MEM_WB.IR = EX_MEM.IR;
 	MEM_WB.PC = EX_MEM.PC;
 	MEM_WB.A = EX_MEM.A;
