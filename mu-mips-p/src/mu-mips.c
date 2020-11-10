@@ -768,10 +768,13 @@ void EX()
 /* instruction decode (ID) pipeline stage:                                                         */ 
 /************************************************************/
 void ID()
-{	
+{
+	ID_EX.IR = IF_ID.IR;
+	uint32_t opcode;
+	opcode = (IF_ID.IR & 0xFC000000) >> 26;
+	
 	if(stall == 0){
                 printf("Executing ID stage\n");
-                ID_EX.IR = IF_ID.IR;
                 ID_EX.PC = IF_ID.PC;
                 ID_EX.A = 0;
                 ID_EX.B = 0;
@@ -781,9 +784,8 @@ void ID()
                 ID_EX.RegisterRS = 0;
                 ID_EX.RegisterRT = 0;
 
-                uint32_t opcode, funct, rs, rt, rd, imm;// sa;
+                uint32_t funct, rs, rt, rd, imm;// sa;
 
-                opcode = (IF_ID.IR & 0xFC000000) >> 26;
                 funct = IF_ID.IR & 0x0000003F;
                 rs = (IF_ID.IR & 0x03E00000) >> 21;
                 rt = (IF_ID.IR & 0x001F0000) >> 16;
@@ -833,9 +835,15 @@ void ID()
 		else {  //I or J type
                         ID_EX.A = NEXT_STATE.REGS[rs];
                         ID_EX.B = NEXT_STATE.REGS[rt];
-                        ID_EX.imm = imm;
                         ID_EX.RegisterRS = rs;
                         ID_EX.RegisterRT = rt;
+
+			if ((imm >> 15) == 1){
+				ID_EX.imm = imm | 0xFFFF0000;	//Sign extend if negative
+			}
+			else{
+				ID_EX.imm = imm & 0x0000FFFF;	//Else it's positive
+			}
 
                         switch (opcode){
                                 case 0x23:      //LW
@@ -852,7 +860,6 @@ void ID()
 	}
 	else {
 		ID_EX.stall = 1;
-		IF_ID.IR = ID_EX.IR;
 		printf("Stall is needed\n");
 		return;
 	}
