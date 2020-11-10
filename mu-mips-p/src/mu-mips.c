@@ -794,37 +794,32 @@ void ID()
                 imm = IF_ID.IR & 0x0000FFFF;
 	
 		if(opcode == 0){
+			ID_EX.RegisterRT = rt;
+			ID_EX.RegisterRS = rs;
+			ID_EX.RegisterRD = rd;
+			ID_EX.RegWrite = 1;
                         switch(funct){
                                 case 0x20:      //ADD
                                         ID_EX.A = NEXT_STATE.REGS[rs];
                                         ID_EX.B = NEXT_STATE.REGS[rt];
-                                        ID_EX.RegisterRD = rd;
-                                        ID_EX.RegWrite = 1;
                                         break;
 
                                 case 0x24:      //AND
                                         ID_EX.A = NEXT_STATE.REGS[rs];
                                         ID_EX.B = NEXT_STATE.REGS[rt];
-                                        ID_EX.RegisterRD = rd;
-                                        ID_EX.RegWrite = 1;
                                         break;
 
                                 case 0x25:      //OR
                                         ID_EX.A = NEXT_STATE.REGS[rs];
                                         ID_EX.B = NEXT_STATE.REGS[rt];
-                                        ID_EX.RegisterRD = rd;
-                                        ID_EX.RegWrite = 1;
                                         break;
 
                                 case 0x26:      //XOR   
                                         ID_EX.A = NEXT_STATE.REGS[rs];
                                         ID_EX.B = NEXT_STATE.REGS[rt];
-                                        ID_EX.RegisterRD = rd;
-                                        ID_EX.RegWrite = 1;
                                         break;
 
                                 case 0x0C:      //SYSCALL
-                                        ID_EX.RegWrite = 1;
                                         break;
 
                                 default:
@@ -837,6 +832,7 @@ void ID()
                         ID_EX.B = NEXT_STATE.REGS[rt];
                         ID_EX.RegisterRS = rs;
                         ID_EX.RegisterRT = rt;
+			ID_EX.RegisterRD = rd;
 
 			if ((imm >> 15) == 1){
 				ID_EX.imm = imm | 0xFFFF0000;	//Sign extend if negative
@@ -847,7 +843,7 @@ void ID()
 
                         switch (opcode){
                                 case 0x23:      //LW
-                                        ID_EX.Mem = 1;
+                                        ID_EX.RegWrite = 0;
                                         break;
                                 case 0x2B:      //SW
                                         ID_EX.RegWrite = 0;
