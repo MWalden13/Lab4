@@ -384,6 +384,9 @@ void WB()
 				break;
 				
 			case 0x0C:	//SYSCALL
+				if (NEXT_STATE.REGS[2] == 0xa){
+					RUN_FLAG = FALSE;
+				}
 				break;
 				
 			case 0x10:	//MFHI
@@ -427,7 +430,7 @@ void WB()
 				break;
 				
 			case 0x20:	//ADD
-				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -447,17 +450,17 @@ void WB()
 				break;
 				
 			case 0x24:	//AND
-				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x25:	//OR
-				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
 			case 0x26:	//XOR
-				NEXT_STATE.REGS[MEM_WB.RegisterRD] = MEM_WB.ALUOutput;
+				NEXT_STATE.REGS[rd] = MEM_WB.ALUOutput;
 				INSTRUCTION_COUNT++;
 				break;
 				
@@ -475,7 +478,6 @@ void WB()
 				printf("R-type instruction not handled in wb\n");
 				break;
 		}
-		stall = 0;
 	}
 	else{
 		switch(opcode){
@@ -583,7 +585,6 @@ void WB()
                 printf("\ninstruction not handled in wb");
 				break;
 		}
-	stall = 0;
 	}
 }
 
@@ -627,7 +628,7 @@ void MEM()
 				break;
 				
 			case 0x23:	//LW
-				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(EX_MEM.ALUOutput);	//Get first 32 bits from memory and place in lmd
+				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 32 bits from memory and place in lmd
 				printf("lw mem address = %X\n", MEM_WB.ALUOutput);
                 break;
 				
@@ -640,7 +641,7 @@ void MEM()
 				break;
 				
 			case 0x2B:	//SW
-				mem_write_32(EX_MEM.ALUOutput, EX_MEM.B);	//Write B into ALUOutput memory
+				mem_write_32(EX_MEM.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
 				break;
 				
 			default:
@@ -720,10 +721,10 @@ void EX()
 					break;
 					
 				case 0x0C:	//SYSCALL
-					if(CURRENT_STATE.REGS[2] == 0xa){
-                   				RUN_FLAG = FALSE;
-                    			}
-                    			print_instruction(CURRENT_STATE.PC-8);
+				//	if(CURRENT_STATE.REGS[2] == 0xa){
+                   		//		RUN_FLAG = FALSE;
+                    		//	}
+                    		//	print_instruction(CURRENT_STATE.PC-8);
 					break; 
 			}
 		}
@@ -771,7 +772,7 @@ void ID()
 {	
 	if (stall != 0){
 		IF_ID.IR = ID_EX.IR;
-                ID_EX.stall = 1;
+                ID_EX.stall = stall;
                 printf("Stall is needed\n");
                 return;	
 	}
@@ -848,7 +849,7 @@ void ID()
 
                         switch (opcode){
                                 case 0x23:      //LW
-                                        ID_EX.RegWrite = 0;
+                                        ID_EX.RegWrite = 1;
                                         break;
                                 case 0x2B:      //SW
                                         ID_EX.RegWrite = 0;
