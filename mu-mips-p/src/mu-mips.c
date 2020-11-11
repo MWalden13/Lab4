@@ -347,6 +347,7 @@ void WB()
 	/*IMPLEMENT THIS*/
 	//Fifth stage
 	
+
 	if (MEM_WB.stall == 1){
 		return;
 	}
@@ -608,6 +609,9 @@ void MEM()
 	MEM_WB.imm = EX_MEM.imm;
 	MEM_WB.ALUOutput = EX_MEM.ALUOutput;
 	MEM_WB.LMD = 0;
+    MEM_WB.RegisterRD = EX_MEM.RegisterRD;
+    MEM_WB.RegisterRT = EX_MEM.RegisterRT;
+    MEM_WB.RegisterRS = EX_MEM.RegisterRS;
 	
 	uint32_t opcode;
 	
@@ -929,7 +933,7 @@ void ForwardData()
 	//Forward from EX stage for A
 	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRS)){
 		if (ENABLE_FORWARDING == 1){
-			ForwardA = 10;	
+			ForwardA = 01;	
 		}
 		else{
 			stall = 2;	
@@ -938,7 +942,7 @@ void ForwardData()
 	
 	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRD != 0)) && (EX_MEM.RegisterRD == ID_EX.RegisterRT)){
 		if (ENABLE_FORWARDING == 1){
-			ForwardB = 10;	
+			ForwardB = 01;	
 		}
 		else{
 			stall = 2;	
@@ -947,7 +951,7 @@ void ForwardData()
 
 	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRT != 0)) && (EX_MEM.RegisterRT == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardA = 10;
+                        ForwardA = 01;
                 }
                 else{
                         stall = 2;
@@ -956,7 +960,7 @@ void ForwardData()
 
 	if ((EX_MEM.RegWrite && (EX_MEM.RegisterRT != 0)) && (EX_MEM.RegisterRT == ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardB = 10;
+                        ForwardB = 01;
                 }
                 else{
                         stall = 2;
@@ -965,7 +969,7 @@ void ForwardData()
 	
 	if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardA = 01;
+                        ForwardA = 10;
                 }
                 else{
                         stall = 1;
@@ -974,7 +978,7 @@ void ForwardData()
 
         if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardB = 01;
+                        ForwardB = 10;
                 }
                 else{
                         stall = 1;
@@ -983,7 +987,7 @@ void ForwardData()
 
         if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardA = 01;
+                        ForwardA = 10;
                 }
                 else{
                         stall = 1;
@@ -992,7 +996,7 @@ void ForwardData()
 
         if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT ==ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardB = 01;
+                        ForwardB = 10;
                 }
                 else{
                         stall = 1;
