@@ -967,7 +967,8 @@ void ForwardData()
                 }
         }
 	
-	if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)){
+	if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (!((EX/MEM.RegWrite and (EX/MEM.RegisterRD ≠ 0) and
+(EX/MEM.RegisterRD = ID/EX.RegisterRS)))) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
                         ForwardA = 10;
                 }
@@ -976,7 +977,8 @@ void ForwardData()
                 }
         }
 
-        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)){
+        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (!((EX/MEM.RegWrite and (EX/MEM.RegisterRD ≠ 0) and
+(EX/MEM.RegisterRD = ID/EX.RegisterRT)))) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
                         ForwardB = 10;
                 }
@@ -985,7 +987,8 @@ void ForwardData()
                 }
         }
 
-        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT == ID_EX.RegisterRS)){
+        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (!((EX/MEM.RegWrite and (EX/MEM.RegisterRT ≠ 0) and
+(EX/MEM.RegisterRT = ID/EX.RegisterRS)))) &&  (MEM_WB.RegisterRT == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
                         ForwardA = 10;
                 }
@@ -994,7 +997,8 @@ void ForwardData()
                 }
         }
 
-        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT ==ID_EX.RegisterRT)){
+        if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (!((EX/MEM.RegWrite and (EX/MEM.RegisterRT ≠ 0) and
+(EX/MEM.RegisterRT = ID/EX.RegisterRT)))) && (MEM_WB.RegisterRT ==ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
                         ForwardB = 10;
                 }
