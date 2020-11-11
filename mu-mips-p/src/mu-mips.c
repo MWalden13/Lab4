@@ -965,7 +965,7 @@ void ForwardData()
 	
 	if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardA = 10;
+                        ForwardA = 01;
                 }
                 else{
                         stall = 1;
@@ -974,7 +974,7 @@ void ForwardData()
 
         if ((MEM_WB.RegWrite && (MEM_WB.RegisterRD != 0)) && (MEM_WB.RegisterRD == ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardB = 10;
+                        ForwardB = 01;
                 }
                 else{
                         stall = 1;
@@ -983,7 +983,7 @@ void ForwardData()
 
         if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT == ID_EX.RegisterRS)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardA = 10;
+                        ForwardA = 01;
                 }
                 else{
                         stall = 1;
@@ -992,7 +992,7 @@ void ForwardData()
 
         if ((MEM_WB.RegWrite && (MEM_WB.RegisterRT != 0)) && (MEM_WB.RegisterRT ==ID_EX.RegisterRT)){
                 if (ENABLE_FORWARDING == 1){
-                        ForwardB = 10;
+                        ForwardB = 01;
                 }
                 else{
                         stall = 1;
