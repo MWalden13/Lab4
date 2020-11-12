@@ -9,6 +9,9 @@
 int stall = 0;
 int ForwardA = 0;
 int ForwardB = 0;
+int loadStallA = 0;
+int loadStallB = 0;
+int loadStall = 0;
 
 /***************************************************************/
 /* Print out a list of commands available                                                                  */
@@ -632,9 +635,10 @@ void MEM()
 				break;
 				
 			case 0x23:	//LW
+				++stall;	
 				MEM_WB.LMD = 0xFFFFFFFF & mem_read_32(MEM_WB.ALUOutput);	//Get first 32 bits from memory and place in lmd
 				printf("lw mem address = %X\n", MEM_WB.ALUOutput);
-                break;
+        		        break;
 				
 			case 0x28:	//SB
 				mem_write_32(MEM_WB.ALUOutput, MEM_WB.B);	//Write B into ALUOutput memory
@@ -867,7 +871,7 @@ void ID()
 
 	
 	ForwardData();	//Check for data hazard and see if we can forward
-	
+
 	if (stall != 0){
 		printf("Data Hazard in ID stage\n");
 		ID_EX.stall = 1;
@@ -888,9 +892,16 @@ void ID()
 		uint32_t opcode;
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if (opcode == 0x20 || opcode == 0x21 || opcode == 0x23){	//For loads
-			ID_EX.A = MEM_WB.LMD;
-			stall = 1;
-		}
+//			if (loadStallA == 1){
+				ID_EX.A = MEM_WB.LMD;
+				loadStall = 1;
+//				loadStallA = 0;
+//			}
+//			else {
+//				loadStallA = 1;
+//				++stall;
+//			}
+		}		
 		else{
 			ID_EX.A = MEM_WB.ALUOutput;	//If not load	
 		}
@@ -900,8 +911,15 @@ void ID()
 		uint32_t opcode;
                 opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if (opcode == 0x20 || opcode == 0x21 || opcode == 0x23){	//For loads
-			ID_EX.B = MEM_WB.LMD;
-			stall = 1;
+//			if (loadStallB == 1){
+				ID_EX.B = MEM_WB.LMD;
+				loadStall = 1;
+//				loadStallB = 0;
+//			}
+//			else{
+//				loadStallB = 1;
+//				++stall;
+//			}
 		}
 		else{
 			ID_EX.B = MEM_WB.ALUOutput;	//If not load	
