@@ -889,6 +889,7 @@ void ID()
 		opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if (opcode == 0x20 || opcode == 0x21 || opcode == 0x23){	//For loads
 			ID_EX.A = MEM_WB.LMD;
+			stall = 1;
 		}
 		else{
 			ID_EX.A = MEM_WB.ALUOutput;	//If not load	
@@ -900,6 +901,7 @@ void ID()
                 opcode = (IF_ID.IR & 0xFC000000) >> 26;
 		if (opcode == 0x20 || opcode == 0x21 || opcode == 0x23){	//For loads
 			ID_EX.B = MEM_WB.LMD;
+			stall = 1;
 		}
 		else{
 			ID_EX.B = MEM_WB.ALUOutput;	//If not load	
